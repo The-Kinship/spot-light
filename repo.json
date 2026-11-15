@@ -18,10 +18,10 @@
     "DalamudApiLevel": 15,
     "IsHide": false,
     "IsTestingExclusive": false,
-    "LastUpdate": 1794758808,
+    "LastUpdate": 1794758838,
     "DownloadLinkInstall": "https://github.com/The-Kinship/spot-light/releases/download/latest/latest.zip",
     "DownloadLinkTesting": "https://github.com/The-Kinship/spot-light/releases/download/latest/latest.zip",
     "DownloadLinkUpdate": "https://github.com/The-Kinship/spot-light/releases/download/latest/latest.zip",
-    "Changelog": "0.1.0: First version: your important items list. Right-click any item in your bags and choose \"Spot Light: mark as important\" (or \"not important any more\"). /spotlight opens a window with your list and a search to add any game item. The highlight in your inventory comes in the next piece."
+    "Changelog": "0.2.0: Highlights! Important items get a thick, bright border and a corner flag in your inventory (the \"all bags open\" layout for now). Highlight style settings: color (with quick high-contrast picks), border thickness, corner flag, pulse, and darken everything else. Highlights hide under item tooltips and right-click menus so those stay readable.\n0.1.0: First version: your important items list. Right-click any item in your bags and choose \"Spot Light: mark as important\" (or \"not important any more\"). /spotlight opens a window with your list and a search to add any game item. The highlight in your inventory comes in the next piece."
   }
 ]
