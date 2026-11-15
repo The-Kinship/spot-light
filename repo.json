@@ -3,7 +3,7 @@
     "Author": "The Kinship",
     "Name": "Rafter Cat's Spot Light",
     "InternalName": "SpotLight",
-    "AssemblyVersion": "0.3.0.0",
+    "AssemblyVersion": "0.4.0.0",
     "Punchline": "Mark the items you need to keep, and they stand out in your inventory.",
     "Description": "Right-click any item and choose \"Spot Light: mark as important\", or search for items in the Spot Light window (/spotlight). Important items get a bold, easy-to-see highlight so you know not to sell or throw them away.\n\nIt only reads your inventory to know where to draw. It never moves, sells or uses anything.",
     "ApplicableVersion": "any",
@@ -18,10 +18,10 @@
     "DalamudApiLevel": 15,
     "IsHide": false,
     "IsTestingExclusive": false,
-    "LastUpdate": 1794759726,
+    "LastUpdate": 1794760705,
     "DownloadLinkInstall": "https://github.com/The-Kinship/spot-light/releases/download/latest/latest.zip",
     "DownloadLinkTesting": "https://github.com/The-Kinship/spot-light/releases/download/latest/latest.zip",
     "DownloadLinkUpdate": "https://github.com/The-Kinship/spot-light/releases/download/latest/latest.zip",
-    "Changelog": "0.3.0: Highlights everywhere: the normal and large inventory layouts, saddlebag (including premium), retainer bags and the FC chest. Tabbed windows are matched to the page you're looking at; if it can't tell for sure, it draws nothing rather than the wrong slot.\n0.2.0: Highlights! Important items get a thick, bright border and a corner flag in your inventory (the \"all bags open\" layout for now). Highlight style settings: color (with quick high-contrast picks), border thickness, corner flag, pulse, and darken everything else. Highlights hide under item tooltips and right-click menus so those stay readable.\n0.1.0: First version: your important items list. Right-click any item in your bags and choose \"Spot Light: mark as important\" (or \"not important any more\"). /spotlight opens a window with your list and a search to add any game item. The highlight in your inventory comes in the next piece."
+    "Changelog": "0.4.0: Notes: write why an item is important (e.g. \"for the stuffed peppers recipe\") in the Spot Light window, or right-click an important item > \"Spot Light: add a note\". The note shows in a clear box above the game's tooltip when you mouse over the item (adjustable text size). Saddlebag: reads the window more ways so highlights can find the right bag. New \"/spotlight debug\" prints what Spot Light sees in open storage windows.\n0.3.0: Highlights everywhere: the normal and large inventory layouts, saddlebag (including premium), retainer bags and the FC chest. Tabbed windows are matched to the page you're looking at; if it can't tell for sure, it draws nothing rather than the wrong slot.\n0.2.0: Highlights! Important items get a thick, bright border and a corner flag in your inventory (the \"all bags open\" layout for now). Highlight style settings: color (with quick high-contrast picks), border thickness, corner flag, pulse, and darken everything else. Highlights hide under item tooltips and right-click menus so those stay readable.\n0.1.0: First version: your important items list. Right-click any item in your bags and choose \"Spot Light: mark as important\" (or \"not important any more\"). /spotlight opens a window with your list and a search to add any game item. The highlight in your inventory comes in the next piece."
   }
 ]
