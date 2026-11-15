@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Dalamud.Configuration;
 
 namespace SpotLight;
@@ -11,6 +12,19 @@ public class Configuration : IPluginConfiguration
 
     /// <summary>The important items, by game item ID (normal quality ID; HQ copies count too).</summary>
     public HashSet<uint> Important { get; set; } = new();
+
+    // --- How the highlight looks ---
+    public bool HighlightOn { get; set; } = true;
+    /// <summary>Box color (bright yellow to start).</summary>
+    public Vector4 Color { get; set; } = new(1f, 0.9f, 0.1f, 1f);
+    /// <summary>Border thickness in pixels.</summary>
+    public float Thickness { get; set; } = 5f;
+    /// <summary>A solid corner flag on important items (a shape, not just a color).</summary>
+    public bool Badge { get; set; } = true;
+    /// <summary>The highlight gently brightens and dims.</summary>
+    public bool Pulse { get; set; }
+    /// <summary>Darken every other item so important ones stand out.</summary>
+    public bool DimOthers { get; set; }
 
     public void Save() => Plugin.PluginInterface.SavePluginConfig(this);
 

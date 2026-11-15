@@ -25,6 +25,7 @@ public sealed class MainWindow : Window
     public override void Draw()
     {
         ImGui.TextColored(Dim, "Tip: right-click any item in your bags and choose \"Spot Light: mark as important\".");
+        DrawStyle();
         ImGui.Spacing();
 
         var height = Math.Max(120f, ImGui.GetContentRegionAvail().Y);
@@ -90,6 +91,46 @@ public sealed class MainWindow : Window
             }
         }
         ImGui.EndChild();
+    }
+
+    /// <summary>How the highlight looks: on/off, color, thickness, corner flag, pulse, dim the rest.</summary>
+    private static void DrawStyle()
+    {
+        var cfg = Plugin.Config;
+        var on = cfg.HighlightOn;
+        if (ImGui.Checkbox("Show highlights in my inventory", ref on)) { cfg.HighlightOn = on; cfg.Save(); }
+        if (on && Highlighter.ShownLastFrame > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(Gold, $"({Highlighter.ShownLastFrame} highlighted right now)");
+        }
+        if (!ImGui.CollapsingHeader("Highlight style")) return;
+
+        ImGui.TextColored(Dim, "Open your inventory (\"all bags\" layout) to see changes as you make them.");
+        var color = cfg.Color;
+        ImGui.SetNextItemWidth(220f);
+        if (ImGui.ColorEdit4("Color", ref color, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.AlphaBar)) cfg.Color = color;
+        if (ImGui.IsItemDeactivatedAfterEdit()) cfg.Save();
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Yellow")) { cfg.Color = new Vector4(1f, 0.9f, 0.1f, 1f); cfg.Save(); }
+        ImGui.SameLine();
+        if (ImGui.SmallButton("White")) { cfg.Color = new Vector4(1f, 1f, 1f, 1f); cfg.Save(); }
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Cyan")) { cfg.Color = new Vector4(0.2f, 1f, 1f, 1f); cfg.Save(); }
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Magenta")) { cfg.Color = new Vector4(1f, 0.25f, 1f, 1f); cfg.Save(); }
+
+        var th = cfg.Thickness;
+        ImGui.SetNextItemWidth(220f);
+        if (ImGui.SliderFloat("Border thickness", ref th, 2f, 10f, "%.0f")) cfg.Thickness = th;
+        if (ImGui.IsItemDeactivatedAfterEdit()) cfg.Save();
+
+        var badge = cfg.Badge;
+        if (ImGui.Checkbox("Corner flag (a shape to spot, not just a color)", ref badge)) { cfg.Badge = badge; cfg.Save(); }
+        var pulse = cfg.Pulse;
+        if (ImGui.Checkbox("Pulse (slowly brightens and dims)", ref pulse)) { cfg.Pulse = pulse; cfg.Save(); }
+        var dimOthers = cfg.DimOthers;
+        if (ImGui.Checkbox("Darken everything else", ref dimOthers)) { cfg.DimOthers = dimOthers; cfg.Save(); }
     }
 
     /// <summary>An item's icon and name (and its category, dimmed).</summary>

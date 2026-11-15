@@ -18,6 +18,8 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     [PluginService] internal static IContextMenu ContextMenu { get; private set; } = null!;
     [PluginService] internal static IChatGui Chat { get; private set; } = null!;
+    [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static IGameInventory GameInventory { get; private set; } = null!;
 
     internal static Configuration Config { get; private set; } = null!;
 
@@ -35,6 +37,7 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var cmd in CommandNames)
             CommandManager.AddHandler(cmd, new CommandInfo(OnCommand) { HelpMessage = "Open or close Rafter Cat's Spot Light (your important items list)." });
 
+        PluginInterface.UiBuilder.Draw += Highlighter.Draw;
         PluginInterface.UiBuilder.Draw += windows.Draw;
         PluginInterface.UiBuilder.OpenMainUi += Toggle;
         PluginInterface.UiBuilder.OpenConfigUi += Toggle;
@@ -72,6 +75,7 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         ContextMenu.OnMenuOpened -= OnMenuOpened;
+        PluginInterface.UiBuilder.Draw -= Highlighter.Draw;
         PluginInterface.UiBuilder.Draw -= windows.Draw;
         PluginInterface.UiBuilder.OpenMainUi -= Toggle;
         PluginInterface.UiBuilder.OpenConfigUi -= Toggle;
