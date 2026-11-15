@@ -35,9 +35,10 @@ public sealed class Plugin : IDalamudPlugin
         windows.AddWindow(window);
 
         foreach (var cmd in CommandNames)
-            CommandManager.AddHandler(cmd, new CommandInfo(OnCommand) { HelpMessage = "Open or close Rafter Cat's Spot Light (your important items list)." });
+            CommandManager.AddHandler(cmd, new CommandInfo(OnCommand) { HelpMessage = "Open or close Rafter Cat's Spot Light (your important items list). \"/spotlight debug\" reports what it sees in open storage windows." });
 
         PluginInterface.UiBuilder.Draw += Highlighter.Draw;
+        PluginInterface.UiBuilder.Draw += NoteTip.Draw;
         PluginInterface.UiBuilder.Draw += windows.Draw;
         PluginInterface.UiBuilder.OpenMainUi += Toggle;
         PluginInterface.UiBuilder.OpenConfigUi += Toggle;
@@ -53,6 +54,16 @@ public sealed class Plugin : IDalamudPlugin
         if (id == 0) return;
 
         var important = Config.IsImportant(id);
+        if (important)
+        {
+            args.AddMenuItem(new MenuItem
+            {
+                Name = Config.NoteFor(id).Length > 0 ? "Spot Light: edit note" : "Spot Light: add a note",
+                PrefixChar = 'S',
+                PrefixColor = 500,
+                OnClicked = _ => window.EditNote(id),
+            });
+        }
         args.AddMenuItem(new MenuItem
         {
             Name = important ? "Spot Light: not important any more" : "Spot Light: mark as important",
@@ -68,7 +79,15 @@ public sealed class Plugin : IDalamudPlugin
         });
     }
 
-    private void OnCommand(string command, string args) => Toggle();
+    private void OnCommand(string command, string args)
+    {
+        if (args.Trim().Equals("debug", System.StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (var line in Highlighter.Diagnose()) Chat.Print("[Spot Light] " + line);
+            return;
+        }
+        Toggle();
+    }
 
     private void Toggle() => window.Toggle();
 
@@ -76,6 +95,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         ContextMenu.OnMenuOpened -= OnMenuOpened;
         PluginInterface.UiBuilder.Draw -= Highlighter.Draw;
+        PluginInterface.UiBuilder.Draw -= NoteTip.Draw;
         PluginInterface.UiBuilder.Draw -= windows.Draw;
         PluginInterface.UiBuilder.OpenMainUi -= Toggle;
         PluginInterface.UiBuilder.OpenConfigUi -= Toggle;

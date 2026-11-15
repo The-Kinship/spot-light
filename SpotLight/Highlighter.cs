@@ -61,6 +61,7 @@ public static unsafe class Highlighter
 
             // Saddlebag (two bags side by side; the premium saddlebag is another tab).
             MatchedGrids(ctx, "InventoryBuddy", Saddlebags.Select(Items).ToList());
+            MatchedGrids(ctx, "InventoryBuddy2", Saddlebags.Select(Items).ToList());
 
             // Retainer: its 175 slots are shown 35 at a time (one grid in the small window, five in the large one).
             var retainer = RetainerViews();
@@ -112,7 +113,7 @@ public static unsafe class Highlighter
     {
         var addon = Addon(addonName);
         if (addon == null || !addon->IsVisible) return;
-        var grids = GridsOf(addon);
+        var grids = SplitAtGaps(SlotsOf(addon));
         if (grids.Count != 1 || grids[0].Count != items.Length) return;
         DrawSlots(ctx, grids[0], items);
     }
@@ -122,16 +123,73 @@ public static unsafe class Highlighter
     {
         var addon = Addon(addonName);
         if (addon == null || !addon->IsVisible) return;
-        var grids = GridsOf(addon);
-        // If the slots split into pieces that don't fit any page (e.g. a 50-slot page drawn as two blocks),
-        // read the whole window as one grid instead.
-        if (grids.Count > 1 && grids.All(g => views.All(v => v.Length != g.Count)))
-            grids = new List<List<Slot>> { grids.SelectMany(g => g).OrderBy(s => MathF.Round(s.Min.Y / 4f)).ThenBy(s => s.Min.X).ToList() };
-        foreach (var grid in grids)
+        foreach (var (grid, view) in Matches(addon, views)) DrawSlots(ctx, grid, view);
+    }
+
+    /// <summary>
+    /// Reads the window's slots a few different ways (split at gaps, as one block, or as 5-wide bags side by side)
+    /// and returns the grids that clearly match a page, using the first way that matches anything.
+    /// </summary>
+    private static List<(List<Slot> Grid, uint[] View)> Matches(AtkUnitBase* addon, List<uint[]> views)
+    {
+        var slots = SlotsOf(addon);
+        foreach (var layout in Layouts(slots))
         {
-            var best = BestMatch(grid, views);
-            if (best != null) DrawSlots(ctx, grid, best);
+            var found = new List<(List<Slot>, uint[])>();
+            foreach (var grid in layout)
+            {
+                var best = BestMatch(grid, views);
+                if (best != null) found.Add((grid, best));
+            }
+            if (found.Count > 0) return found;
         }
+        return new();
+    }
+
+    private static IEnumerable<List<List<Slot>>> Layouts(List<Slot> slots)
+    {
+        if (slots.Count == 0) yield break;
+        yield return SplitAtGaps(slots);
+        yield return new List<List<Slot>> { RowMajor(slots) };
+        yield return SplitEvery5Columns(slots);
+    }
+
+    private static List<Slot> RowMajor(IEnumerable<Slot> slots) =>
+        slots.OrderBy(s => MathF.Round(s.Min.Y / 4f)).ThenBy(s => s.Min.X).ToList();
+
+    /// <summary>Bags drawn side by side, each 5 slots wide.</summary>
+    private static List<List<Slot>> SplitEvery5Columns(List<Slot> slots)
+    {
+        var columns = slots.Select(s => MathF.Round(s.Min.X)).Distinct().OrderBy(x => x).ToList();
+        return slots.GroupBy(s => columns.IndexOf(MathF.Round(s.Min.X)) / 5).OrderBy(g => g.Key).Select(g => RowMajor(g)).ToList();
+    }
+
+    /// <summary>For /spotlight debug: what Spot Light sees in each storage window that's open.</summary>
+    public static List<string> Diagnose()
+    {
+        var lines = new List<string>();
+        void Check(string name, List<uint[]> views)
+        {
+            var addon = Addon(name);
+            if (addon == null || !addon->IsVisible) return;
+            var slots = SlotsOf(addon);
+            var nonEmpty = views.Select(v => v.Count(i => i != 0)).ToList();
+            var gaps = SplitAtGaps(slots).Select(g => g.Count);
+            var matched = Matches(addon, views).Count;
+            lines.Add($"{name}: {slots.Count} slots, grids by gaps [{string.Join(",", gaps)}], pages {views.Count} " +
+                      $"(sizes {string.Join(",", views.Select(v => v.Length))}, items {string.Join(",", nonEmpty)}), matched grids: {matched}");
+        }
+        for (var b = 0; b < 4; b++) Check($"InventoryGrid{b}E", new List<uint[]> { Items(Bags[b]) });
+        Check("InventoryGrid", BagViews());
+        Check("InventoryGrid0", BagViews());
+        Check("InventoryGrid1", BagViews());
+        Check("InventoryBuddy", Saddlebags.Select(Items).ToList());
+        Check("InventoryBuddy2", Saddlebags.Select(Items).ToList());
+        Check("RetainerGrid", RetainerViews());
+        for (var g = 0; g < 5; g++) Check($"RetainerGrid{g}", RetainerViews());
+        Check("FreeCompanyChest", FcPages.Select(Items).ToList());
+        if (lines.Count == 0) lines.Add("No storage windows are open.");
+        return lines;
     }
 
     /// <summary>The page whose items' icons line up with the icons on screen, or null if none clearly does.</summary>
@@ -213,7 +271,7 @@ public static unsafe class Highlighter
     /// The item slots of a window, split into its grids (a big gap between columns starts a new grid),
     /// each in the bag's own order: left to right, top to bottom.
     /// </summary>
-    private static List<List<Slot>> GridsOf(AtkUnitBase* addon)
+    private static List<Slot> SlotsOf(AtkUnitBase* addon)
     {
         var slots = new List<Slot>();
         var uld = addon->UldManager;
@@ -229,6 +287,11 @@ public static unsafe class Highlighter
             var min = new Vector2(node->ScreenX, node->ScreenY);
             slots.Add(new Slot(min, min + new Vector2(node->Width * scale, node->Height * scale), icon));
         }
+        return slots;
+    }
+
+    private static List<List<Slot>> SplitAtGaps(List<Slot> slots)
+    {
         if (slots.Count == 0) return new();
 
         // Columns (by X), then split into grids wherever the gap between columns is much bigger than usual.
@@ -244,7 +307,7 @@ public static unsafe class Highlighter
 
         return slots.GroupBy(s => gridOfColumn[MathF.Round(s.Min.X)])
             .OrderBy(g => g.Key)
-            .Select(g => g.OrderBy(s => MathF.Round(s.Min.Y / 4f)).ThenBy(s => s.Min.X).ToList())
+            .Select(g => RowMajor(g))
             .ToList();
     }
 

@@ -26,6 +26,23 @@ public class Configuration : IPluginConfiguration
     /// <summary>Darken every other item so important ones stand out.</summary>
     public bool DimOthers { get; set; }
 
+    // --- Notes ---
+    /// <summary>Why an item is important, by item ID (e.g. "for the stuffed peppers recipe").</summary>
+    public Dictionary<uint, string> Notes { get; set; } = new();
+    /// <summary>Show the note when you mouse over the item.</summary>
+    public bool ShowNotes { get; set; } = true;
+    /// <summary>Note text size (1 = normal).</summary>
+    public float NoteSize { get; set; } = 1.3f;
+
+    public string NoteFor(uint id) => Notes.TryGetValue(BaseId(id), out var n) ? n : "";
+
+    public void SetNote(uint id, string note)
+    {
+        id = BaseId(id);
+        if (note.Trim().Length == 0) Notes.Remove(id);
+        else Notes[id] = note;
+    }
+
     public void Save() => Plugin.PluginInterface.SavePluginConfig(this);
 
     /// <summary>The plain item ID: HQ and collectable copies share their normal item's ID.</summary>

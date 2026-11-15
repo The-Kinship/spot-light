@@ -14,6 +14,16 @@ public sealed class MainWindow : Window
 
     private string search = "";
     private string filter = "";
+    /// <summary>Item whose note box should get the keyboard (from the right-click "add a note").</summary>
+    private uint focusNote;
+
+    /// <summary>Opens the window with this item's note box ready to type in.</summary>
+    public void EditNote(uint id)
+    {
+        IsOpen = true;
+        filter = ItemNames.Name(id);
+        focusNote = Configuration.BaseId(id);
+    }
 
     public MainWindow() : base("Rafter Cat's Spot Light##SpotLightMain")
     {
@@ -24,7 +34,7 @@ public sealed class MainWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(Dim, "Tip: right-click any item in your bags and choose \"Spot Light: mark as important\".");
+        ImGui.TextColored(Dim, "Tip: right-click any item in your bags and choose \"Spot Light: mark as important\" (then \"add a note\").");
         DrawStyle();
         ImGui.Spacing();
 
@@ -50,6 +60,20 @@ public sealed class MainWindow : Window
                 if (ImGui.SmallButton("Remove")) remove = id;
                 ImGui.SameLine();
                 ItemRow(id, name);
+                // Why it's important (shown when you mouse over the item in game).
+                var note = cfg.NoteFor(id);
+                ImGui.Indent(24f);
+                if (focusNote == id) { ImGui.SetKeyboardFocusHere(); focusNote = 0; ImGui.SetScrollHereY(0.3f); }
+                ImGui.SetNextItemWidth(-1);
+                if (ImGui.InputText("##note", ref note, 200)) cfg.SetNote(id, note);
+                if (ImGui.IsItemDeactivatedAfterEdit()) cfg.Save();
+                if (note.Length == 0 && !ImGui.IsItemActive())
+                {
+                    var min = ImGui.GetItemRectMin();
+                    ImGui.GetWindowDrawList().AddText(min + new Vector2(6, 3), ImGui.ColorConvertFloat4ToU32(Dim), "Note: why it's important (optional)");
+                }
+                ImGui.Unindent(24f);
+                ImGui.Spacing();
                 ImGui.PopID();
             }
             if (cfg.Important.Count == 0) ImGui.TextColored(Dim, "Nothing yet. Add items from the search on the right,\nor right-click them in your bags.");
@@ -131,6 +155,14 @@ public sealed class MainWindow : Window
         if (ImGui.Checkbox("Pulse (slowly brightens and dims)", ref pulse)) { cfg.Pulse = pulse; cfg.Save(); }
         var dimOthers = cfg.DimOthers;
         if (ImGui.Checkbox("Darken everything else", ref dimOthers)) { cfg.DimOthers = dimOthers; cfg.Save(); }
+
+        ImGui.Spacing();
+        var notes = cfg.ShowNotes;
+        if (ImGui.Checkbox("Show my note when I mouse over an important item", ref notes)) { cfg.ShowNotes = notes; cfg.Save(); }
+        var noteSize = cfg.NoteSize;
+        ImGui.SetNextItemWidth(220f);
+        if (ImGui.SliderFloat("Note text size", ref noteSize, 1f, 2f, "%.1fx")) cfg.NoteSize = noteSize;
+        if (ImGui.IsItemDeactivatedAfterEdit()) cfg.Save();
     }
 
     /// <summary>An item's icon and name (and its category, dimmed).</summary>
