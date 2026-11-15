@@ -1,0 +1,8 @@
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <Version>0.1.0.0</Version>
+    <Description>Rafter Cat's Spot Light: mark items as important and see them highlighted in your inventory.</Description>
+    <PackageProjectUrl>https://github.com/The-Kinship/spot-light</PackageProjectUrl>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>
